@@ -92,6 +92,7 @@
 ..\..\output\main.o: ..\..\Drivers\./BSP/SERVO/servo.h
 ..\..\output\main.o: ..\..\Drivers\./BSP/USART3/usart3.h
 ..\..\output\main.o: ..\..\Drivers\./BSP/HC05/hc05.h
+..\..\output\main.o: ..\..\Drivers\./BSP/TIM2/time2.h
 ..\..\output\main.o: ..\..\ONENET\device\inc\esp8266.h
 ..\..\output\main.o: D:\MDK5\ARM\ARMCC\Bin\..\include\string.h
 ..\..\output\main.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdbool.h

@@ -653,6 +653,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\USART3\usart3.c</FilePath>
             </File>
+            <File>
+              <FileName>time2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\BSP\TIM2\time2.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

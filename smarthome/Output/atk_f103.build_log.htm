@@ -1,0 +1,78 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.36.0.0
+Copyright (C) 2021 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: alientek ALIENTEK, alientek, LIC=AK1BF-6RH5Z-TL1CD-8V829-ZQP6T-1M03Z
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Professional  Version: 5.36.0.0
+Toolchain Path:  D:\MDK5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 7 (build 960)
+Assembler:       Armasm.exe V5.06 update 7 (build 960)
+Linker/Locator:  ArmLink.exe V5.06 update 7 (build 960)
+Library Manager: ArmAr.exe V5.06 update 7 (build 960)
+Hex Converter:   FromElf.exe V5.06 update 7 (build 960)
+CPU DLL:         SARMCM3.DLL V5.36.0.0
+Dialog DLL:      DCM.DLL V1.17.3.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.9.0
+Dialog DLL:      TCM.DLL V1.53.0.0
+ 
+<h2>Project:</h2>
+C:\Users\123\OneDrive\桌面\智能家居系统\Projects\MDK-ARM\atk_f103.uvprojx
+Project File Date:  11/25/2024
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\MDK5\ARM\ARMCC\Bin'
+Build target 'LED'
+compiling base64.c...
+compiling MqttKit.c...
+compiling cJSON.c...
+..\..\ONENET\CJSON\cJSON.c(55): warning:  #1293-D: assignment in condition
+        if (!(copy = (char*)cJSON_malloc(len))) return 0;
+..\..\ONENET\CJSON\cJSON.c(278): warning:  #1293-D: assignment in condition
+  	ptr=str;while ((token=*ptr) && ++len) {if (strchr("\"\\\b\f\n\r\t",token)) len++; else if (token<32) len+=5;ptr++;}
+..\..\ONENET\CJSON\cJSON.c(351): warning:  #111-D: statement is unreachable
+  	return p.buffer;
+..\..\ONENET\CJSON\cJSON.c(423): warning:  #1293-D: assignment in condition
+  		if (!(new_item=cJSON_New_Item())) return 0; 	/* memory fail */
+..\..\ONENET\CJSON\cJSON.c(535): warning:  #1293-D: assignment in condition
+  		if (!(new_item=cJSON_New_Item()))	return 0; /* memory fail */
+..\..\ONENET\CJSON\cJSON.c: 5 warnings, 0 errors
+compiling hmac_sha1.c...
+compiling main.c...
+compiling onenet.c...
+..\..\ONENET\onenet\src\onenet.c(550): warning:  #177-D: variable "data_ptr"  was declared but never referenced
+  				char *data_ptr = NULL;
+..\..\ONENET\onenet\src\onenet.c(538): warning:  #177-D: variable "dataPtr"  was declared but never referenced
+  	char *dataPtr = NULL;
+..\..\ONENET\onenet\src\onenet.c(539): warning:  #177-D: variable "numBuf"  was declared but never referenced
+  	char numBuf[10];
+..\..\ONENET\onenet\src\onenet.c(540): warning:  #177-D: variable "num"  was declared but never referenced
+  	int num = 0;
+..\..\ONENET\onenet\src\onenet.c: 4 warnings, 0 errors
+compiling esp8266.c...
+compiling usart.c...
+compiling lcd.c...
+linking...
+Program Size: Code=44404 RO-data=13228 RW-data=64 ZI-data=3704  
+FromELF: creating hex file...
+"..\..\Output\atk_f103.axf" - 0 Error(s), 9 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F1xx_DFP.2.3.0.pack
+                Keil.STM32F1xx_DFP.2.3.0
+                STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  D:\MDK5\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+Build Time Elapsed:  00:00:19
+</pre>
+</body>
+</html>

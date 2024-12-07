@@ -9,11 +9,14 @@
 #include "./BSP/LCD/lcd.h"
 #include	"./BSP/SERVO/servo.h"
 #include "./BSP/RC522/RC522.h"
+#include "./BSP/TIM2/time2.h"
 #include <stdio.h>
 
 uint8_t ** PW_kbd_tbl;
 const uint8_t * kbd_passwordmenu[15]={"指纹"," : ","设置","1","2","3","4","5","6","7","8","9","DEL","0","Enter",};//按键表
 extern uint8_t Card_OK;
+extern int LOCKUP_START ;
+uint8_t error_cnt = 0;
 
 void SET_PW(void)	//设置新的密码
 {
@@ -75,6 +78,7 @@ void VERIFY_PW(uint16_t num)//密码验证
 	uint8_t temp[4];
 	uint8_t i;
 	uint16_t convert[4];
+//	uint8_t error_cnt = 0;
 	NUM_DISPLAY(num);	
 	for(i=0;i<4;i++)
 	{
@@ -90,21 +94,38 @@ void VERIFY_PW(uint16_t num)//密码验证
 		convert[2]==temp[2]&&
 		convert[3]==temp[3])
 	{
-			LED1(0);		//DS1绿灯亮
-      BEEP(1);		//BEEP响
-		  Servo_SetAngle(180);
-      delay_ms(500);
-			LED1(1);
-      BEEP(0);		//BEEP不响
-			delay_ms(2000);
-			Servo_SetAngle(20);
-			lcd_fill(0,120,240,140,WHITE);
-			text_show_string_middle(0,120,"密码正确",16,240, BLACK);
+		LED1(0);		//DS1绿灯亮
+		BEEP(1);		//BEEP响
+		Servo_SetAngle(180);
+		delay_ms(500);
+		LED1(1);
+		BEEP(0);		//BEEP不响
+		delay_ms(2000);
+		Servo_SetAngle(20);
+		lcd_fill(0,120,240,140,WHITE);
+		text_show_string_middle(0,120,"密码正确",16,240, BLACK);
+		error_cnt = 0;
+		delay_ms(1000);
 	}
 	else
 	{
+		if(error_cnt<=3)
+		{
+			error_cnt++;
 			lcd_fill(0,120,240,140,WHITE);
 			text_show_string_middle(0,120,"密码错误",16,240,BLACK);
+		}
+		else if(error_cnt >3)
+		{
+			lcd_fill(0,120,240,140,WHITE);
+			text_show_string_middle(0,120,"设备上锁20s",16,240,BLACK);
+			LOCKUP_START = 1;
+			while(LOCKUP_START)
+			{
+			}
+			error_cnt = 0;
+			delay_ms(200);
+		}
 	}
 	delay_ms(1000);
 	MAIN_MENU();//加载主页面

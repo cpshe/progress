@@ -28,6 +28,7 @@
 #include	"./BSP/SERVO/servo.h"
 #include "./BSP/USART3/usart3.h"
 #include "./BSP/HC05/hc05.h"
+#include "./BSP/TIM2/time2.h"
 #include "esp8266.h"
 #include "onenet.h"
 #include "MqttKit.h"
@@ -43,16 +44,13 @@ extern unsigned char Card_ID2[8];
 extern unsigned char Card_ID3[8];
 extern unsigned char Card_ID4[8];
 extern unsigned char Card_ID5[8];
-
-
-unsigned char Card_ID_TEST[8] = {1,2,3,4,5,6,7,8};
-unsigned char Card_ID_READ[8] = {0};
-
 extern unsigned char a_esp8266_buf;
-
+extern uint8_t error_cnt;
+extern uint8_t LOCKUP_START;
 uint8_t processsum = 0;
 uint8_t hc_pwd[4];
 uint8_t initial_pwd[4] = {1,2,3,4};
+void BLE_TEXT(void);
 int main(void)
  {
 	uint8_t i;
@@ -70,6 +68,7 @@ int main(void)
 	usart1_init(9600);
 	usart2_init(usart2_baund);
 	usart3_init(115200);
+	time2_init(5000-1, 7200-1);
 	beep_init();
 	lcd_init();
 	PS_StaGPIO_Init();
@@ -173,8 +172,8 @@ int main(void)
 			lcd_clear(WHITE);
 			text_show_string_middle(0,40,"蓝牙模式",16,240,BLACK);
 			text_show_string_middle(0,60,"请输入：",16,240,BLACK);
-			text_show_string(0,80,200,16,"密码+0x0E:解锁",16,0,BLACK);
-			text_show_string(0,100,200,16,"密码+0x0F:修改密码",16,0,BLACK);
+			text_show_string(0,80,200,16,"密码+FF0x0E:解锁",16,0,BLACK);
+			text_show_string(0,100,200,16,"密码+FF0x0F:修改密码",16,0,BLACK);
 			while(1)
 			{
 				if(USART1_RX_STA & 0x8000)
@@ -189,8 +188,9 @@ int main(void)
 							hc_pwd[i] = at24cxx_read_one_byte(55+(i*1));
 						}
 						lcd_clear(WHITE);
-						text_show_string_middle(0,40,"解锁模式",16,240,BLACK);
-						text_show_string_middle(0,60,"请输入密码",16,240,BLACK);
+						BLE_TEXT();
+//						text_show_string_middle(0,40,"解锁模式",16,240,BLACK);
+//						text_show_string_middle(0,60,"请输入密码",16,240,BLACK);
 						delay_ms(1000);
 						if(USART1_RX_BUF[0] == hc_pwd[0]&&
 							 USART1_RX_BUF[1]==hc_pwd[1]&&
@@ -207,11 +207,32 @@ int main(void)
 							BEEP(0);		//BEEP不响
 							delay_ms(2000);
 							Servo_SetAngle(20);
+							BLE_TEXT();
+							error_cnt = 0;
 						}
 						else
 						{
-							lcd_fill(0,120,240,140,WHITE);
-							text_show_string_middle(0,120,"密码错误",16,240,BLACK);
+							if(error_cnt <= 3)
+							{
+								error_cnt++;
+								lcd_fill(0,120,240,140,WHITE);
+								text_show_string_middle(0,120,"密码错误",16,240,BLACK);
+								delay_ms(1000);
+								BLE_TEXT();
+							}
+							else if(error_cnt > 3)
+							{
+								lcd_fill(0,120,240,140,WHITE);
+								text_show_string_middle(0,120,"设备上锁20s",16,240,BLACK);
+								printf("设备上锁20s\r\n");
+								LOCKUP_START = 1;
+								while(LOCKUP_START)
+								{
+								}
+								error_cnt = 0;
+								delay_ms(1000);
+								BLE_TEXT();
+							}
 						}
 					}
 					else if(USART1_RX_BUF[5]==0x0F&&USART1_RX_BUF[6]==0x0A)
@@ -220,10 +241,12 @@ int main(void)
 						text_show_string_middle(0,40,"改密模式",16,240,BLACK);
 						text_show_string_middle(0,80,"请输入密码",16,240,BLACK);
 						uint8_t i;
+
 						for(i=0;i<4;i++)
 						{
 							at24cxx_write_one_byte(55+(i*1),USART1_RX_BUF[i]);
 						}
+						delay_ms(1000);
 						text_show_string_middle(0,100,"修改成功",16,240,BLACK);
 					}
 					USART1_RX_STA = 0;
@@ -244,7 +267,7 @@ int main(void)
 			OneNET_Subscribe();
 			while(1)
 			{
-				if(++times>=10)
+				if(++times>=100)
 				{
 					OneNet_SendData();
 					times = 0;
@@ -261,3 +284,9 @@ int main(void)
 	}
 }
 
+void BLE_TEXT(void)
+{
+	lcd_clear(WHITE);
+	text_show_string_middle(0,40,"解锁模式",16,240,BLACK);
+	text_show_string_middle(0,60,"请输入密码",16,240,BLACK);
+}
