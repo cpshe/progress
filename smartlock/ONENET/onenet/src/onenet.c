@@ -39,10 +39,20 @@
 #include "./BSP/USART3/usart3.h"
 #include "./BSP/LED/led.h"
 #include "./BSP/BEEP/beep.h"
+#include "./BSP/24CXX/24cxx.h"
+#include	"./BSP/SERVO/servo.h"
+#include "./BSP/LCD/lcd.h" 
+#include "./TEXT/text.h"
+#include "./BSP/PASSWORD/password.h"
+
 //C库
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
+#define __use_no_semihosting 0
+
+#define PASSWORD_LEN 4
 
 #define PROID			"9A7a7Sj8GY"
 
@@ -54,6 +64,8 @@
 char devid[16];
 
 char key[48];
+
+char generate_pwd[PASSWORD_LEN + 1] = {0};
 
 extern unsigned char ESP8266_Buf[512];
 
@@ -336,7 +348,7 @@ _Bool OneNet_DevLink(void)
 							"NAME: %s,	PROID: %s,	KEY:%s\r\n"
                         , DEVICE_NAME, PROID, authorization_buf);
 	
-	if(MQTT_PacketConnect(PROID, authorization_buf, DEVICE_NAME, 512, 1, MQTT_QOS_LEVEL0, NULL, NULL, 0, &mqttPacket) == 0)
+	if(MQTT_PacketConnect(PROID, authorization_buf, DEVICE_NAME, 128, 1, MQTT_QOS_LEVEL0, NULL, NULL, 0, &mqttPacket) == 0)
 	{
 		ESP8266_SendData(mqttPacket._data, mqttPacket._len);			//上传平台
 		
@@ -374,10 +386,24 @@ unsigned char OneNet_FillBuf(char *buf)
 	
 	char text[48];
 	
+	char temporary_pwd[5];
+	
+	strcpy((char*)temporary_pwd,generate_pwd);
+	
+	temporary_pwd[4] = '\0';
+	
 	memset(text, 0, sizeof(text));
 	
 	strcpy(buf, "{\"id\":\"123\",\"params\":{");
 	
+	memset(text, 0, sizeof(text));
+	sprintf(text, "\"generate_pwd\":{\"value\":%s},",temporary_pwd);
+	strcat(buf, text);
+
+	memset(text, 0, sizeof(text));
+	sprintf(text, "\"generate_flag\":{\"value\":%s},",generate_pwd_status?"true":"false");
+	strcat(buf, text);
+
 	memset(text, 0, sizeof(text));
 	sprintf(text, "\"beep\":{\"value\":%s},", beep_info.Beep_Status?"true":"false");
 	strcat(buf, text);
@@ -544,15 +570,91 @@ void OneNet_RevPro(unsigned char *cmd)
 				cJSON *params_json = cJSON_GetObjectItem(raw_json,"params");
 				cJSON *led_json= cJSON_GetObjectItem(params_json,"led");
 				cJSON *beep_json = cJSON_GetObjectItem(params_json,"beep");
+				cJSON *wifi_json = cJSON_GetObjectItem(params_json,"wifi_pwd");
+				cJSON *flag_json = cJSON_GetObjectItem(params_json, "flag_sta");
+				cJSON *verify_json = cJSON_GetObjectItem(params_json, "verify_pwd");
+				cJSON *generate_flag_json = cJSON_GetObjectItem(params_json, "generate_flag");
 				if(led_json != NULL)
 				{
-					if(led_json->type == cJSON_True) Led_Set(LED_ON);
-					else Led_Set(LED_OFF);
+					if(led_json->type == cJSON_True) 
+					{
+						Led_Set(LED_ON);
+						lcd_clear(WHITE);
+						WIFI_TEXT();
+					}
+					else
+					{	
+						Led_Set(LED_OFF);
+						lcd_clear(WHITE);
+						WIFI_TEXT();
+					}
 				}
 				if(beep_json!=NULL)
 				{
 					if(beep_json->type == cJSON_True) Beep_Set(BEEP_ON);
 					else Beep_Set(BEEP_OFF);
+				}
+				if(wifi_json != NULL)
+				{
+					uint8_t wifi_pwd[4];
+					uint8_t i = 0;
+					char str[5];
+					at24cxx_read(55,wifi_pwd,4);
+					for(i=0;i<4;i++)
+					{
+						str[i] = wifi_pwd[i]+'0' ;
+					}
+					str[4] = '\0';
+					if(0 == strcmp(wifi_json->valuestring , str))
+					{
+							LED1(0);		//DS1绿灯亮
+							BEEP(1);		//BEEP响
+							Servo_SetAngle(180);
+							lcd_clear(WHITE);
+							text_show_string_middle(0,120,"开锁成功",16,240, BLACK);
+							delay_ms(500);
+							LED1(1);
+							BEEP(0);		//BEEP不响
+							delay_ms(2000);
+							Servo_SetAngle(20);
+							lcd_clear(WHITE);
+							WIFI_TEXT();
+					}
+				}
+				if(flag_json != NULL)
+				{
+					uint8_t i = 0;
+					if(flag_json->type == cJSON_True)
+					{
+						uint8_t verify_pwd[5];
+						if(verify_json!=NULL)
+						{
+							strcpy((char*)verify_pwd,verify_json->valuestring);
+							for(i=0;i<4;i++)
+							{
+								verify_pwd[i] = verify_pwd[i] - '0';
+							}
+							at24cxx_write(55,verify_pwd,4);
+						}
+					}
+				}
+				if(generate_flag_json != NULL)
+				{
+					uint8_t i;
+					uint8_t temporary_pwd[5];
+					if(generate_flag_json->type == cJSON_True)
+					{
+						generate_pwd_status = 1;
+						generate_password(generate_pwd, PASSWORD_LEN);
+						generate_pwd[PASSWORD_LEN] = '\0';
+						strcpy((char*)temporary_pwd,generate_pwd);
+						for(i=0;i<4;i++)
+						{
+							temporary_pwd[i] = temporary_pwd[i] - '0';
+						}
+						at24cxx_write(65,temporary_pwd,4);
+					}
+					else generate_pwd_status = 0;
 				}
 				cJSON_Delete(raw_json);
 

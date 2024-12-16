@@ -3,16 +3,22 @@
 #include "./BSP/USART3/usart3.h"
 #include "./BSP/24CXX/24cxx.h"
 #include "./SYSTEM/delay/delay.h"
+#include "./BSP/LCD/lcd.h" 
+#include "./TEXT/text.h"
+#include "./BSP/KEY/key.h"
 
-#define     ESP8266_WIFI_INFO		"AT+CWJAP=\"508\",\"www.791358426\"\r\n"          //连接上自己的wifi热点：WiFi名和密码
+//#define     ESP8266_WIFI_INFO		"AT+CWJAP=\"508\",\"www.791358426\"\r\n"          //连接上自己的wifi热点：WiFi名和密码
 #define     ESP8266_ONENET_INFO		"AT+CIPSTART=\"TCP\",\"mqtts.heclouds.com\",1883\r\n" //连接上OneNet的MQTT
 
 
 unsigned char ESP8266_Buf[512];                         //定义一个数组作为esp8266的数据缓冲区
 unsigned short esp8266_cnt = 0, esp8266_cntPre = 0;     //定义两个计数值：此次和上一次
 unsigned char a_esp8266_buf;
-char wife_pwd[10];
 
+unsigned char WIFI_BUF[512];
+char wifi_str[512];
+
+uint8_t modify_wifi_str[512];
 
 /**
   * @brief esp8266初始化
@@ -21,8 +27,10 @@ char wife_pwd[10];
   */
 void ESP8266_Init(void)
 {
+	char* result = 0;
+	uint8_t correct_len = 0;
 	GPIO_InitTypeDef GPIO_Initure;
-	 
+	
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	
 	GPIO_Initure.Pin = GPIO_PIN_4;
@@ -37,27 +45,51 @@ void ESP8266_Init(void)
 	
   ESP8266_Clear();
 	
+	at24cxx_read(75,modify_wifi_str,40);
+
 	printf("1. 测试AT启动\r\n");            //AT：测试AT启动
 	while(ESP8266_SendCmd("AT\r\n", "OK"))
+	{
+		lcd_show_string(30,40,240,16,16,"AT\r\n",BLACK);
 		HAL_Delay(500);
+		lcd_clear(WHITE);
+	}
 		
 	printf("2. 设置WiFi模式（CWMODE）\r\n");        //查询/设置 Wi-Fi 模式：设置WiFi模式为Station模式
 	while(ESP8266_SendCmd("AT+CWMODE=1\r\n", "OK"))
+	{
+		lcd_show_string(30,40,240,16,16,"AT+CWMODE=1\r\n",BLACK);
 		HAL_Delay(500);
+		lcd_clear(WHITE);
+	}
 	
 	printf("3. AT+CWDHCP\r\n");     //启用/禁用 DHCP
 	while(ESP8266_SendCmd("AT+CWDHCP=1,1\r\n", "OK"))
+	{
+		lcd_show_string(30,40,240,16,16,"AT+CWDHCP=1,1\r\n",BLACK);
 		HAL_Delay(500);
+		lcd_clear(WHITE);
+	}
 	
 	printf("4. 连接WiFi热点（CWJAP）\r\n");        
-	while(ESP8266_SendCmd(ESP8266_WIFI_INFO, "GOT IP"))
+	while(ESP8266_SendCmd((char*)modify_wifi_str, "GOT IP"))
+	{
+		lcd_show_string(30,40,240,16,16,"ESP8266_WIFI_INFO",BLACK);
 		HAL_Delay(500);
+		lcd_clear(WHITE);
+	}
 	
 	printf("5. 建立TCP连接（CIPSTART）\r\n");
 	while(ESP8266_SendCmd(ESP8266_ONENET_INFO, "CONNECT"))
+	{
+		lcd_show_string(30,40,240,16,16,"ESP8266_ONENET_INFO",BLACK);
 		HAL_Delay(500);
+		lcd_clear(WHITE);
+	}
 	
 	printf("6. ESP8266 Init OK\r\n");
+	lcd_show_string(30,40,240,16,16,"ESP8266 Init OK",BLACK);
+	lcd_clear(WHITE);
 }    
 
 
@@ -176,11 +208,39 @@ unsigned char *ESP8266_GetIPD(unsigned short timeOut)
 				
 			}
 		}
-		
 		HAL_Delay(5);													//延时等待
 	} while(timeOut--);
 	
 	return NULL;		//超时还未找到，返回空指针
+}
+
+void WIFI_TEXT(void)
+{
+		text_show_string_middle(0,40,"WIFI模式",16,240,BLACK);
+		text_show_string_middle(0,60,"请输入：",16,240,BLACK);
+		text_show_string_middle(0,80,"LED:TRUE:解锁",16,240,BLACK);
+		text_show_string_middle(0,100,"LED:FALSE:关锁",16,240,BLACK);
+}
+
+void WIFI_MODIFY(void)
+{
+	uint8_t wifi_reclen = 0;
+	uint8_t len =0;
+	text_show_string_middle(0,40,"修改WIFI",16,240,BLACK);
+	while(1)
+	{
+		if(USART1_RX_STA & 0x8000)
+		{
+			wifi_reclen = USART1_RX_STA & 0x7FFF;
+			USART1_RX_BUF[wifi_reclen] = 0;
+			strcpy((char*)WIFI_BUF,(char*)USART1_RX_BUF);
+			sprintf(wifi_str, "AT+CWJAP=%s\r\n",WIFI_BUF);
+			len = strlen(wifi_str);
+			wifi_str[len] = '\0';
+			at24cxx_write(75,(uint8_t*)wifi_str,len);
+			USART1_RX_STA = 0;
+		}
+	}
 }
 
 
@@ -199,8 +259,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		{
 			ESP8266_Buf[esp8266_cnt++] = a_esp8266_buf;   //接收数据转存
 		
-		}
-		
+		}	
 		HAL_UART_Receive_IT(&huart3, (uint8_t *)&a_esp8266_buf, 1);   //再开启接收中断
 	}	
 }

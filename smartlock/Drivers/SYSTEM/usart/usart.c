@@ -125,28 +125,6 @@ void USART1_IRQHandler(void)
 	}
 }
 
-//void USART3_IRQHandler(void)
-//{
-//	uint8_t res;
-//	if((__HAL_USART_GET_FLAG(&UART1_Handler, USART_FLAG_RXNE)!= RESET))
-//	{
-//		HAL_UART_Receive(&UART1_Handler, &res,1,HAL_MAX_DELAY);
-//		if((USART1_RX_STA & 0x8000)==0)
-//		{
-//			if(USART1_RX_STA & 0x4000)//接收到了0x0d
-//			{
-//				if(res != 0x0a)USART1_RX_STA = 0;
-//				else USART1_RX_STA |= 0x8000;
-//			}
-//			else
-//			{
-//				USART3_RX_BUF[USART1_RX_STA & 0x3FFF] = res;
-//				USART1_RX_STA++;
-//				if(USART1_RX_STA>(USART3_MAX_RECV_LEN-1))USART1_RX_STA = 0;
-//			}
-//		}
-//	}
-//}
 
 void usart1_init(uint32_t bound)
 {

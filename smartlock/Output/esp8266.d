@@ -66,3 +66,8 @@
 ..\..\output\esp8266.o: ..\..\Drivers\./BSP/USART3/usart3.h
 ..\..\output\esp8266.o: ..\..\Drivers\./BSP/24CXX/24cxx.h
 ..\..\output\esp8266.o: ..\..\Drivers\./SYSTEM/delay/delay.h
+..\..\output\esp8266.o: ..\..\Drivers\./BSP/LCD/lcd.h
+..\..\output\esp8266.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdlib.h
+..\..\output\esp8266.o: ..\..\Middlewares\./TEXT/text.h
+..\..\output\esp8266.o: ..\..\Middlewares\./TEXT/fonts.h
+..\..\output\esp8266.o: ..\..\Drivers\./BSP/KEY/key.h

@@ -28,7 +28,7 @@ void PWM_Init(void)
 	
 	TIM_OC_InitTypeDef sConfigOC;
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;  // PWM 模式 1
-	sConfigOC.Pulse = TIM4_PWM_CHY_CCRX;  // CCR，占空比初始值
+	//sConfigOC.Pulse = TIM4_PWM_CHY_CCRX;  // CCR，占空比初始值
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;  // 输出极性高
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;  // 快速模式禁用
 	sConfigOC.Pulse = 500;
@@ -38,7 +38,6 @@ void PWM_Init(void)
 	HAL_TIM_PWM_Start(&htim4, TIM4_PWM_CHY);
 }
 
-//正转90度
 void PWM_SetCompare1(uint16_t compare)
 {
 	__HAL_TIM_SET_COMPARE(&htim4, TIM4_PWM_CHY, compare);

@@ -36,7 +36,7 @@
  * 默认是针对USART1的.
  * 注意: 通过修改这几个宏定义,可以支持USART1~UART5任意一个串口.
  */
-#define USART1_MAX_RECV_LEN		400					//最大接收缓存字节数
+#define USART1_MAX_RECV_LEN		1024					//最大接收缓存字节数
 #define USART1_MAX_SEND_LEN		400					//最大发送缓存字节数
 #define USART1_RX_EN 			1					//0,不接收;1,接收.
 

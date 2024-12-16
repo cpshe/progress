@@ -74,3 +74,10 @@
 ..\..\output\onenet.o: ..\..\Drivers\./BSP/USART3/usart3.h
 ..\..\output\onenet.o: ..\..\Drivers\./BSP/LED/led.h
 ..\..\output\onenet.o: ..\..\Drivers\./BSP/BEEP/beep.h
+..\..\output\onenet.o: ..\..\Drivers\./BSP/24CXX/24cxx.h
+..\..\output\onenet.o: ..\..\Drivers\./BSP/SERVO/servo.h
+..\..\output\onenet.o: ..\..\Drivers\./BSP/LCD/lcd.h
+..\..\output\onenet.o: ..\..\Middlewares\./TEXT/text.h
+..\..\output\onenet.o: ..\..\Middlewares\./TEXT/fonts.h
+..\..\output\onenet.o: ..\..\Drivers\./BSP/PASSWORD/password.h
+..\..\output\onenet.o: D:\MDK5\ARM\ARMCC\Bin\..\include\time.h

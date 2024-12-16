@@ -18,6 +18,8 @@ extern uint8_t Card_OK;
 extern int LOCKUP_START ;
 uint8_t error_cnt = 0;
 
+_Bool generate_pwd_status;
+
 void SET_PW(void)	//设置新的密码
 {
 	uint16_t num;
@@ -65,7 +67,7 @@ void SET_PW(void)	//设置新的密码
 				for(i=0;i<4;i++)
 				{
 					at24cxx_write_one_byte(55+(i*1),change[i]);
-				}	
+				}	                                                                                                                                                                                                                                                       
 				delay_ms(1000);
 				MAIN_MENU();//加载主页面	
 			}
@@ -77,22 +79,28 @@ void VERIFY_PW(uint16_t num)//密码验证
 {
 	uint8_t temp[4];
 	uint8_t i;
+	uint8_t temporary[4];
 	uint16_t convert[4];
 //	uint8_t error_cnt = 0;
 	NUM_DISPLAY(num);	
 	for(i=0;i<4;i++)
 	{
 		temp[i] = at24cxx_read_one_byte(55+(i*1));//读出EEPROM的密码
+		temporary[i] = at24cxx_read_one_byte(65+(i*1));
 	}
 	convert[0]=num/1000;
 	convert[1]=(num/100)%10;
 	convert[2]=(num/10)%10;
 	convert[3]=num%10;	
 
-	if(convert[0]==temp[0]&&
+	if((convert[0]==temp[0]&&
 		convert[1]==temp[1]&&
 		convert[2]==temp[2]&&
-		convert[3]==temp[3])
+		convert[3]==temp[3])||
+	 (convert[0]==temporary[0]&&
+		convert[1]==temporary[1]&&
+		convert[2]==temporary[2]&&
+		convert[3]==temporary[3]))
 	{
 		LED1(0);		//DS1绿灯亮
 		BEEP(1);		//BEEP响
@@ -109,13 +117,13 @@ void VERIFY_PW(uint16_t num)//密码验证
 	}
 	else
 	{
-		if(error_cnt<=3)
+		if(error_cnt<=2)
 		{
 			error_cnt++;
 			lcd_fill(0,120,240,140,WHITE);
 			text_show_string_middle(0,120,"密码错误",16,240,BLACK);
 		}
-		else if(error_cnt >3)
+		else if(error_cnt >2)
 		{
 			lcd_fill(0,120,240,140,WHITE);
 			text_show_string_middle(0,120,"设备上锁20s",16,240,BLACK);
@@ -308,8 +316,20 @@ void MAIN_MENU(void)
 	PW_load_keyboard(0,170,(uint8_t**)kbd_passwordmenu);//加载虚拟键盘,密码解锁界面
 }
 
-
-
+//临时密码生成
+void generate_password(char* password, uint8_t length)
+{
+	const char digits[] = "0123456789";
+	int digits_len = sizeof(digits) - 1;
+	
+	srand(uwTick);
+	
+	for(int i = 0;i<length;i++)
+	{
+		password[i] = digits[rand() % digits_len];
+	}
+	password[length] = '\0';
+}
 
 
 

@@ -39,6 +39,7 @@
 uint8_t ID1,ID2,ID3,ID4,ID5;
 extern uint8_t Card_OK;
 
+extern unsigned char ESP8266_Buf[512];                         //定义一个数组作为esp8266的数据缓冲区
 extern unsigned char Card_ID1[8];
 extern unsigned char Card_ID2[8];
 extern unsigned char Card_ID3[8];
@@ -50,13 +51,20 @@ extern uint8_t LOCKUP_START;
 uint8_t processsum = 0;
 uint8_t hc_pwd[4];
 uint8_t initial_pwd[4] = {1,2,3,4};
+uint8_t wifi_pwd_leng = 0;
+
 void BLE_TEXT(void);
+
+uint8_t MES_BUF[400];
+
 int main(void)
  {
 	uint8_t i;
 	uint8_t reclen = 0;
 	uint8_t key_num;
 	uint8_t key;
+	uint8_t modify_key;
+	uint8_t initial_key;
 	uint16_t num;
 	uint16_t cnt;
 	uint8_t processsum = 0;
@@ -82,11 +90,7 @@ int main(void)
 	my_mem_init(SRAMIN);
 	tp_dev.init();
 	f_mount(fs[1],"1",1);//挂载flash
-//	for(i=0;i<4;i++)//初始密码为1234
-//	{
-//		at24cxx_write_one_byte(55+(i*1),initial_pwd[i]);
-//	}
-	
+		
 	while(fonts_init())
 	{
 		lcd_show_string(60, 50, 240, 16, 16, "Font Error!",BLACK);
@@ -95,10 +99,7 @@ int main(void)
 		delay_ms(200);	
 	}
 	LED0(0);
-	
-	HAL_UART_Receive_IT(&huart3, (uint8_t *)&a_esp8266_buf, 1);
-	ESP8266_Init();
-	
+		
 	while(HC05_Init())
 	{
 		lcd_show_string(60, 50, 240, 16, 16, "HC05 Error!",BLACK);
@@ -108,179 +109,197 @@ int main(void)
 	}
 	delay_ms(100);
 		
-	while(1)
+	modify_key = key_scan(0); 
+	if(modify_key == KEY1_PRES)
 	{
+		WIFI_MODIFY();
+	}
+
+	HAL_UART_Receive_IT(&huart3, (uint8_t *)&a_esp8266_buf, 1);
+	ESP8266_Init();
+
+	/*初始密码*/
+	initial_key = key_scan(1);
+	if(initial_key == KEY0_PRES)
+	{
+		for(i=0;i<4;i++)//初始密码为1234
+		{
+			at24cxx_write_one_byte(55+(i*1),initial_pwd[i]);
+		}
+	}
+	
+	
+	while(1)
+	{		
 		text_show_string_middle(0,40,"智能门锁",16,240,BLACK);
 		text_show_string_middle(0,60,"请选择模式",16,240,BLACK);
 		text_show_string(0,80,200,16,"密码+0xFE或KEYUP:普通模式",16,0,BLACK);
 		text_show_string(0,100,200,16,"密码+0xFF或KEY1:蓝牙模式",16,0,BLACK);
 		text_show_string(0,120,200,16,"密码+0xEE或KEY0:WIFE模式",16,0,BLACK);
-		
-		key = key_scan(0);
-		if(USART1_RX_BUF[4]==0xFE||key == WKUP_PRES )
+		while(1)
 		{
-			while(1)
+			key = key_scan(0);
+			if(USART1_RX_BUF[4]==0xFE||key == WKUP_PRES )
 			{
-				//延时状态切换		
-				switch(processsum)
+				while(1)
 				{
-					case 0:
-						MAIN_MENU();//切回主页面
-						processsum=2;
-						break;
-					case 1:
-						PS_MAINMENU();				
-							while(1)
-							{
-								key_num=AS608_get_keynum(0,170);
-								if(key_num)
-								{
-									if(key_num==1)Del_FR();		//删指纹
-									if(key_num==3)Add_FR();		//录指纹									
-								}
-								if(PS_Sta)//检测PS_Sta状态，如果有手指按下跳转指纹解锁界面比对指纹
-								{
-									press_FR();//刷指纹
-								}	
-								delay_ms(20);
-								cnt++;
-								if(cnt%500==0)break;//延迟10s后跳转主界面
-							}
-							processsum=0;
-							break;
-					case 2:			
-						num=PW_GET_NUM();
-						if(num==0xff00)
-						{
-							SET_PW();		//设置新密码
-						}
-						if((num!=0xffff)&&(num!=0xff00))
-						{
-							VERIFY_PW(num);	//密码验证		
-						}
-						if(num==0xffff)//跳转指纹解锁
-						{
-							delay_ms(500);
-							processsum=1;
-							break;
-						}
-				}
-			}
-		}	
-		if(USART1_RX_BUF[4] == 0xFF || key == KEY1_PRES)
-		{
-			lcd_clear(WHITE);
-			text_show_string_middle(0,40,"蓝牙模式",16,240,BLACK);
-			text_show_string_middle(0,60,"请输入：",16,240,BLACK);
-			text_show_string(0,80,200,16,"密码+FF0x0E:解锁",16,0,BLACK);
-			text_show_string(0,100,200,16,"密码+FF0x0F:修改密码",16,0,BLACK);
-			while(1)
-			{
-				if(USART1_RX_STA & 0x8000)
-				{
-					reclen = USART1_RX_STA & 0x7FFF;
-					USART1_RX_BUF[reclen] = 0;
-					if(USART1_RX_BUF[5]==0x0E&&USART1_RX_BUF[6]==0x0A)
+					//延时状态切换		
+					switch(processsum)
 					{
-						uint8_t i;
-						for(i=0;i<4;i++)
+						case 0:
+							MAIN_MENU();//切回主页面
+							processsum=2;
+							break;
+						case 1:
+							PS_MAINMENU();				
+								while(1)
+								{
+									key_num=AS608_get_keynum(0,170);
+									if(key_num)
+									{
+										if(key_num==1)Del_FR();		//删指纹
+										if(key_num==3)Add_FR();		//录指纹									
+									}
+									if(PS_Sta)//检测PS_Sta状态，如果有手指按下跳转指纹解锁界面比对指纹
+									{
+										press_FR();//刷指纹
+									}	
+									delay_ms(20);
+									cnt++;
+									if(cnt%500==0)break;//延迟10s后跳转主界面
+								}
+								processsum=0;
+								break;
+						case 2:			
+							num=PW_GET_NUM();
+							if(num==0xff00)
+							{
+								SET_PW();		//设置新密码
+							}
+							if((num!=0xffff)&&(num!=0xff00))
+							{
+								VERIFY_PW(num);	//密码验证		
+							}
+							if(num==0xffff)//跳转指纹解锁
+							{
+								delay_ms(500);
+								processsum=1;
+								break;
+							}
+					}
+				}
+			}	
+			if(USART1_RX_BUF[4] == 0xFF || key == KEY1_PRES)
+			{
+				lcd_clear(WHITE);
+				text_show_string_middle(0,40,"蓝牙模式",16,240,BLACK);
+				text_show_string_middle(0,60,"请输入：",16,240,BLACK);
+				text_show_string(0,80,200,16,"密码+FF0x0E:解锁",16,0,BLACK);
+				text_show_string(0,100,200,16,"密码+FF0x0F:修改密码",16,0,BLACK);
+				while(1)
+				{
+					if(USART1_RX_STA & 0x8000)
+					{
+						reclen = USART1_RX_STA & 0x7FFF;
+						USART1_RX_BUF[reclen] = 0;
+						if(USART1_RX_BUF[5]==0x0E&&USART1_RX_BUF[6]==0x0A)
 						{
-							hc_pwd[i] = at24cxx_read_one_byte(55+(i*1));
-						}
-						lcd_clear(WHITE);
-						BLE_TEXT();
-//						text_show_string_middle(0,40,"解锁模式",16,240,BLACK);
-//						text_show_string_middle(0,60,"请输入密码",16,240,BLACK);
-						delay_ms(1000);
-						if(USART1_RX_BUF[0] == hc_pwd[0]&&
-							 USART1_RX_BUF[1]==hc_pwd[1]&&
-							 USART1_RX_BUF[2]==hc_pwd[2]&&
-							 USART1_RX_BUF[3]==hc_pwd[3])
-						{
-							LED1(0);		//DS1绿灯亮
-							BEEP(1);		//BEEP响
-							Servo_SetAngle(180);
-							lcd_fill(0,120,240,140,WHITE);
-							text_show_string_middle(0,120,"密码正确",16,240, BLACK);
-							delay_ms(500);
-							LED1(1);
-							BEEP(0);		//BEEP不响
-							delay_ms(2000);
-							Servo_SetAngle(20);
+							uint8_t i;
+							for(i=0;i<4;i++)
+							{
+								hc_pwd[i] = at24cxx_read_one_byte(55+(i*1));
+							}
+							lcd_clear(WHITE);
 							BLE_TEXT();
-							error_cnt = 0;
-						}
-						else
-						{
-							if(error_cnt <= 3)
+							delay_ms(1000);
+							if(USART1_RX_BUF[0] == hc_pwd[0]&&
+								 USART1_RX_BUF[1]==hc_pwd[1]&&
+								 USART1_RX_BUF[2]==hc_pwd[2]&&
+								 USART1_RX_BUF[3]==hc_pwd[3])
 							{
-								error_cnt++;
+								LED1(0);		//DS1绿灯亮
+								BEEP(1);		//BEEP响
+								Servo_SetAngle(180);
 								lcd_fill(0,120,240,140,WHITE);
-								text_show_string_middle(0,120,"密码错误",16,240,BLACK);
-								delay_ms(1000);
+								text_show_string_middle(0,120,"密码正确",16,240, BLACK);
+								delay_ms(500);
+								LED1(1);
+								BEEP(0);		//BEEP不响
+								delay_ms(2000);
+								Servo_SetAngle(20);
 								BLE_TEXT();
-							}
-							else if(error_cnt > 3)
-							{
-								lcd_fill(0,120,240,140,WHITE);
-								text_show_string_middle(0,120,"设备上锁20s",16,240,BLACK);
-								printf("设备上锁20s\r\n");
-								LOCKUP_START = 1;
-								while(LOCKUP_START)
-								{
-								}
 								error_cnt = 0;
-								delay_ms(1000);
-								BLE_TEXT();
+							}
+							else
+							{
+								if(error_cnt <= 2)
+								{
+									error_cnt++;
+									lcd_fill(0,120,240,140,WHITE);
+									text_show_string_middle(0,120,"密码错误",16,240,BLACK);
+									delay_ms(1000);
+									BLE_TEXT();
+								}
+								else if(error_cnt > 2)
+								{
+									lcd_fill(0,120,240,140,WHITE);
+									text_show_string_middle(0,120,"设备上锁20s",16,240,BLACK);
+									printf("设备上锁20s\r\n");
+									LOCKUP_START = 1;
+									while(LOCKUP_START)
+									{
+									}
+									error_cnt = 0;
+									delay_ms(1000);
+									BLE_TEXT();
+								}
 							}
 						}
-					}
-					else if(USART1_RX_BUF[5]==0x0F&&USART1_RX_BUF[6]==0x0A)
-					{
-						lcd_clear(WHITE);
-						text_show_string_middle(0,40,"改密模式",16,240,BLACK);
-						text_show_string_middle(0,80,"请输入密码",16,240,BLACK);
-						uint8_t i;
-
-						for(i=0;i<4;i++)
+						else if(USART1_RX_BUF[5]==0x0F&&USART1_RX_BUF[6]==0x0A)
 						{
-							at24cxx_write_one_byte(55+(i*1),USART1_RX_BUF[i]);
+							lcd_clear(WHITE);
+							text_show_string_middle(0,40,"改密模式",16,240,BLACK);
+							text_show_string_middle(0,80,"请输入密码",16,240,BLACK);
+							uint8_t i;
+
+							for(i=0;i<4;i++)
+							{
+								at24cxx_write_one_byte(55+(i*1),USART1_RX_BUF[i]);
+							}
+							delay_ms(1000);
+							text_show_string_middle(0,100,"修改成功",16,240,BLACK);
 						}
-						delay_ms(1000);
-						text_show_string_middle(0,100,"修改成功",16,240,BLACK);
+						USART1_RX_STA = 0;
 					}
-					USART1_RX_STA = 0;
 				}
 			}
-		}
-		if(USART1_RX_BUF[4] == 0xEE || key == KEY0_PRES)
-		{
-			unsigned char *dataPtr = NULL;
-			lcd_clear(WHITE);
-			text_show_string_middle(0,40,"WIFE模式",16,240,BLACK);
-			text_show_string_middle(0,60,"请输入：",16,240,BLACK);
-			text_show_string(0,80,200,16,"TRUE:解锁",16,0,BLACK);
-			text_show_string(0,100,200,16,"FALSE:关锁",16,0,BLACK);
-			
-			while(OneNet_DevLink())
-			HAL_Delay(500);
-			OneNET_Subscribe();
-			while(1)
+			if(USART1_RX_BUF[4] == 0xEE || key == KEY0_PRES)
 			{
-				if(++times>=100)
+				unsigned char *dataPtr = NULL;
+				lcd_clear(WHITE);
+				WIFI_TEXT();
+				while(OneNet_DevLink())
+				HAL_Delay(500);
+				OneNET_Subscribe();
+				while(1)
 				{
-					OneNet_SendData();
-					times = 0;
-					ESP8266_Clear();
+					if(++times>=100)
+					{
+						OneNet_SendData();
+						times = 0;
+						ESP8266_Clear();
+					}
+					delay_ms(200);
+					
+					dataPtr = ESP8266_GetIPD(3);
+					if(dataPtr != NULL)
+					{
+						OneNet_RevPro(dataPtr);	
+					}
 				}
-				
-				delay_ms(200);
-				
-				dataPtr = ESP8266_GetIPD(3);
-				if(dataPtr != NULL)
-					OneNet_RevPro(dataPtr);	
 			}
-		}
+			USART1_RX_STA = 0;
+		}	
 	}
 }
 
