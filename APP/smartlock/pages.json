@@ -3,7 +3,7 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "小熊公主的智能家居"
+				"navigationBarTitleText": "智能门锁"
 			}
 		}
 	],
