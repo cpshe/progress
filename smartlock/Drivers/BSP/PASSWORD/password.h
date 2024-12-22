@@ -17,6 +17,7 @@ uint8_t* NUM_CONVERT(uint16_t num);
 void NUM_DISPLAY(uint16_t num);
 void LCD_PW(void);
 void MAIN_MENU(void);
-void generate_password(char* password, uint8_t length);
+void generate_password(char* password,uint32_t* creation_time, uint8_t length);
+int is_password_expired(uint32_t creation_time, int expiration_days);
 
 #endif

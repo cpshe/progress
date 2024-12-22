@@ -10,12 +10,16 @@
 #include	"./BSP/SERVO/servo.h"
 #include "./BSP/RC522/RC522.h"
 #include "./BSP/TIM2/time2.h"
+#include "./BSP/RTC/rtc.h"
 #include <stdio.h>
 
 uint8_t ** PW_kbd_tbl;
 const uint8_t * kbd_passwordmenu[15]={"指纹"," : ","设置","1","2","3","4","5","6","7","8","9","DEL","0","Enter",};//按键表
 extern uint8_t Card_OK;
-extern int LOCKUP_START ;
+extern int LOCKUP_START;
+extern uint32_t real_time;
+ uint32_t current_time;
+uint32_t time_diff;
 uint8_t error_cnt = 0;
 
 _Bool generate_pwd_status;
@@ -81,12 +85,16 @@ void VERIFY_PW(uint16_t num)//密码验证
 	uint8_t i;
 	uint8_t temporary[4];
 	uint16_t convert[4];
-//	uint8_t error_cnt = 0;
+	
+	if(!is_password_expired(real_time,1))
+	{
+		at24cxx_read(65,temporary,4);
+	}
+	
 	NUM_DISPLAY(num);	
 	for(i=0;i<4;i++)
 	{
 		temp[i] = at24cxx_read_one_byte(55+(i*1));//读出EEPROM的密码
-		temporary[i] = at24cxx_read_one_byte(65+(i*1));
 	}
 	convert[0]=num/1000;
 	convert[1]=(num/100)%10;
@@ -317,7 +325,7 @@ void MAIN_MENU(void)
 }
 
 //临时密码生成
-void generate_password(char* password, uint8_t length)
+void generate_password(char* password,uint32_t *creation_time, uint8_t length)
 {
 	const char digits[] = "0123456789";
 	int digits_len = sizeof(digits) - 1;
@@ -329,9 +337,16 @@ void generate_password(char* password, uint8_t length)
 		password[i] = digits[rand() % digits_len];
 	}
 	password[length] = '\0';
+	*creation_time = rtc_get_time();
 }
 
+int is_password_expired(uint32_t creation_time, int expiration_days)
+{
+    current_time = rtc_get_time();
+		time_diff = current_time - creation_time;
 
+    return time_diff > expiration_days * 86400;  // 86400秒 = 1天
+}
 
 
 

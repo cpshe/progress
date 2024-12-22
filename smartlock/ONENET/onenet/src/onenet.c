@@ -66,7 +66,7 @@ char devid[16];
 char key[48];
 
 char generate_pwd[PASSWORD_LEN + 1] = {0};
-
+uint32_t generate_time;
 extern unsigned char ESP8266_Buf[512];
 
 /*
@@ -385,23 +385,17 @@ unsigned char OneNet_FillBuf(char *buf)
 {
 	
 	char text[48];
-	
-	char temporary_pwd[5];
-	
-	strcpy((char*)temporary_pwd,generate_pwd);
-	
-	temporary_pwd[4] = '\0';
-	
+		
 	memset(text, 0, sizeof(text));
 	
 	strcpy(buf, "{\"id\":\"123\",\"params\":{");
 	
 	memset(text, 0, sizeof(text));
-	sprintf(text, "\"generate_pwd\":{\"value\":%s},",temporary_pwd);
+	sprintf(text, "\"generate_flag\":{\"value\":%s},",generate_pwd_status?"true":"false");
 	strcat(buf, text);
 
 	memset(text, 0, sizeof(text));
-	sprintf(text, "\"generate_flag\":{\"value\":%s},",generate_pwd_status?"true":"false");
+	sprintf(text, "\"generate_pwd\":{\"value\":%s},",generate_pwd);
 	strcat(buf, text);
 
 	memset(text, 0, sizeof(text));
@@ -594,6 +588,8 @@ void OneNet_RevPro(unsigned char *cmd)
 					if(beep_json->type == cJSON_True) Beep_Set(BEEP_ON);
 					else Beep_Set(BEEP_OFF);
 				}
+				
+				/*验证密码*/
 				if(wifi_json != NULL)
 				{
 					uint8_t wifi_pwd[4];
@@ -621,6 +617,8 @@ void OneNet_RevPro(unsigned char *cmd)
 							WIFI_TEXT();
 					}
 				}
+				
+				/*修改密码*/
 				if(flag_json != NULL)
 				{
 					uint8_t i = 0;
@@ -638,6 +636,8 @@ void OneNet_RevPro(unsigned char *cmd)
 						}
 					}
 				}
+				
+				/*生成临时密码*/
 				if(generate_flag_json != NULL)
 				{
 					uint8_t i;
@@ -645,14 +645,21 @@ void OneNet_RevPro(unsigned char *cmd)
 					if(generate_flag_json->type == cJSON_True)
 					{
 						generate_pwd_status = 1;
-						generate_password(generate_pwd, PASSWORD_LEN);
+						generate_password(generate_pwd,&generate_time, PASSWORD_LEN);
 						generate_pwd[PASSWORD_LEN] = '\0';
 						strcpy((char*)temporary_pwd,generate_pwd);
 						for(i=0;i<4;i++)
 						{
 							temporary_pwd[i] = temporary_pwd[i] - '0';
 						}
+						uint8_t byte1 = (generate_time >> 24) & 0xFF;  // 获取高位字节
+						uint8_t byte2 = (generate_time >> 16) & 0xFF;  // 获取次高位字节
+						uint8_t byte3 = (generate_time >> 8) & 0xFF;   // 获取次低位字节
+						uint8_t byte4 = generate_time & 0xFF;          // 获取低位字节
+						uint8_t time_buf[4] = {byte1,byte2,byte3,byte4};
 						at24cxx_write(65,temporary_pwd,4);
+						at24cxx_write(85,time_buf,4);
+							
 					}
 					else generate_pwd_status = 0;
 				}

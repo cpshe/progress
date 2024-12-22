@@ -29,6 +29,7 @@
 #include "./BSP/USART3/usart3.h"
 #include "./BSP/HC05/hc05.h"
 #include "./BSP/TIM2/time2.h"
+#include "./BSP/RTC/rtc.h"
 #include "esp8266.h"
 #include "onenet.h"
 #include "MqttKit.h"
@@ -52,6 +53,8 @@ uint8_t processsum = 0;
 uint8_t hc_pwd[4];
 uint8_t initial_pwd[4] = {1,2,3,4};
 uint8_t wifi_pwd_leng = 0;
+uint32_t real_time ;
+uint8_t creation_times[4];
 
 void BLE_TEXT(void);
 
@@ -87,10 +90,15 @@ int main(void)
 	extix_init();
 	Servo_SetAngle(20);
 	norflash_init();
+	rtc_init();
 	my_mem_init(SRAMIN);
 	tp_dev.init();
 	f_mount(fs[1],"1",1);//挂载flash
-		
+	
+	//取出临时密码生成的时间
+	at24cxx_read(85,creation_times,4);
+	real_time = (creation_times[0] << 24) | (creation_times[1] << 16) | (creation_times[2] << 8) | creation_times[3];		
+	
 	while(fonts_init())
 	{
 		lcd_show_string(60, 50, 240, 16, 16, "Font Error!",BLACK);
@@ -289,9 +297,9 @@ int main(void)
 						times = 0;
 						ESP8266_Clear();
 					}
-					delay_ms(200);
+					delay_ms(10);
 					
-					dataPtr = ESP8266_GetIPD(3);
+					dataPtr = ESP8266_GetIPD(0);
 					if(dataPtr != NULL)
 					{
 						OneNet_RevPro(dataPtr);	
