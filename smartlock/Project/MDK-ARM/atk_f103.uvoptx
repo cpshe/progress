@@ -220,12 +220,12 @@
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>current_time</ItemText>
+          <ItemText>modify_wifi_str</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>time_diff</ItemText>
+          <ItemText>wifi_str</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

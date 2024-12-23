@@ -58,8 +58,6 @@ uint8_t creation_times[4];
 
 void BLE_TEXT(void);
 
-uint8_t MES_BUF[400];
-
 int main(void)
  {
 	uint8_t i;
@@ -96,7 +94,7 @@ int main(void)
 	f_mount(fs[1],"1",1);//挂载flash
 	
 	//取出临时密码生成的时间
-	at24cxx_read(85,creation_times,4);
+	at24cxx_read(120,creation_times,4);
 	real_time = (creation_times[0] << 24) | (creation_times[1] << 16) | (creation_times[2] << 8) | creation_times[3];		
 	
 	while(fonts_init())

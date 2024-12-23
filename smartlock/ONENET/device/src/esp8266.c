@@ -27,8 +27,6 @@ uint8_t modify_wifi_str[512];
   */
 void ESP8266_Init(void)
 {
-	char* result = 0;
-	uint8_t correct_len = 0;
 	GPIO_InitTypeDef GPIO_Initure;
 	
 	__HAL_RCC_GPIOA_CLK_ENABLE();

@@ -658,7 +658,7 @@ void OneNet_RevPro(unsigned char *cmd)
 						uint8_t byte4 = generate_time & 0xFF;          // 获取低位字节
 						uint8_t time_buf[4] = {byte1,byte2,byte3,byte4};
 						at24cxx_write(65,temporary_pwd,4);
-						at24cxx_write(85,time_buf,4);
+						at24cxx_write(120,time_buf,4);
 							
 					}
 					else generate_pwd_status = 0;

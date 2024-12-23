@@ -18,8 +18,6 @@ const uint8_t * kbd_passwordmenu[15]={"Ö¸ÎÆ"," : ","ÉèÖÃ","1","2","3","4","5","6
 extern uint8_t Card_OK;
 extern int LOCKUP_START;
 extern uint32_t real_time;
- uint32_t current_time;
-uint32_t time_diff;
 uint8_t error_cnt = 0;
 
 _Bool generate_pwd_status;
@@ -342,8 +340,8 @@ void generate_password(char* password,uint32_t *creation_time, uint8_t length)
 
 int is_password_expired(uint32_t creation_time, int expiration_days)
 {
-    current_time = rtc_get_time();
-		time_diff = current_time - creation_time;
+    uint32_t current_time = rtc_get_time();
+		uint32_t time_diff = current_time - creation_time;
 
     return time_diff > expiration_days * 86400;  // 86400Ãë = 1Ìì
 }
