@@ -287,7 +287,7 @@ int main(void)
 				while(OneNet_DevLink())
 				HAL_Delay(500);
 				OneNET_Subscribe();
-				MQTT_PACKET_STRUCTURE mqttPacket;
+//				MQTT_PACKET_STRUCTURE mqttPacket;
 				while(1)
 				{
 					//发送数据到onenet
@@ -299,15 +299,15 @@ int main(void)
 					}
 					delay_ms(10);
 					
-					//发送心跳请求
-					if (++times % 50 == 0)
-					{  
-            if (MQTT_PacketPing(&mqttPacket) == 0)
-						{
-							ESP8266_SendData(mqttPacket._data, mqttPacket._len);
-            }
-						ESP8266_Clear();
-					}	
+//					//发送心跳请求
+//					if (++times % 50 == 0)
+//					{  
+//            if (MQTT_PacketPing(&mqttPacket) == 0)
+//						{
+//							ESP8266_SendData(mqttPacket._data, mqttPacket._len);
+//            }
+//						ESP8266_Clear();
+//					}	
 					
 					dataPtr = ESP8266_GetIPD(0);//接收esp8266中的数据
 					if(dataPtr != NULL)
