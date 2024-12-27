@@ -306,6 +306,7 @@ int main(void)
 						{
 							ESP8266_SendData(mqttPacket._data, mqttPacket._len);
             }
+						ESP8266_Clear();
 					}	
 					
 					dataPtr = ESP8266_GetIPD(0);//接收esp8266中的数据
