@@ -673,6 +673,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\RTC\rtc.c</FilePath>
             </File>
+            <File>
+              <FileName>sccb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\BSP\OV7670\sccb.c</FilePath>
+            </File>
+            <File>
+              <FileName>ov7670.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\BSP\OV7670\ov7670.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

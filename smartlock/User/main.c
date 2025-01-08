@@ -30,6 +30,8 @@
 #include "./BSP/HC05/hc05.h"
 #include "./BSP/TIM2/time2.h"
 #include "./BSP/RTC/rtc.h"
+#include "./BSP/OV7670/sccb.h"
+#include "./BSP/OV7670/ov7670.h"
 #include "esp8266.h"
 #include "onenet.h"
 #include "MqttKit.h"
@@ -85,7 +87,7 @@ int main(void)
 	key_init();
 	RC522_Init();
 	Servo_Init();
-	extix_init();
+	EXTI8_Init();
 	Servo_SetAngle(20);
 	norflash_init();
 	rtc_init();
@@ -97,6 +99,15 @@ int main(void)
 	at24cxx_read(120,creation_times,4);
 	real_time = (creation_times[0] << 24) | (creation_times[1] << 16) | (creation_times[2] << 8) | creation_times[3];		
 	
+	while(OV7670_Init())
+	{
+		lcd_show_string(30,210,200,16,16,"OV7670 Error!!",BLACK);
+		printf("ov7670 error\r\n");
+		delay_ms(200);
+		lcd_fill(30,210,239,246,WHITE);
+		delay_ms(200);
+	}
+
 	while(fonts_init())
 	{
 		lcd_show_string(60, 50, 240, 16, 16, "Font Error!",BLACK);

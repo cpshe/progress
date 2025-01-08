@@ -1,4 +1,6 @@
 ..\..\output\exti.o: ..\..\Drivers\BSP\EXTI\exti.c
+..\..\output\exti.o: ..\..\Drivers\./SYSTEM/usart/usart.h
+..\..\output\exti.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\exti.o: ..\..\Drivers\./SYSTEM/sys/sys.h
 ..\..\output\exti.o: ..\..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f1xx.h
 ..\..\output\exti.o: ..\..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f103xe.h
@@ -58,16 +60,7 @@
 ..\..\output\exti.o: ..\..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pcd_ex.h
 ..\..\output\exti.o: ..\..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_hcd.h
 ..\..\output\exti.o: ..\..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_mmc.h
+..\..\output\exti.o: ..\..\Drivers\./BSP/OV7670/ov7670.h
+..\..\output\exti.o: ..\..\Drivers\./BSP/OV7670/sccb.h
 ..\..\output\exti.o: ..\..\Drivers\./SYSTEM/delay/delay.h
-..\..\output\exti.o: ..\..\Drivers\./BSP/LED/led.h
-..\..\output\exti.o: ..\..\Drivers\./BSP/BEEP/beep.h
-..\..\output\exti.o: ..\..\Drivers\./BSP/KEY/key.h
 ..\..\output\exti.o: ..\..\Drivers\./BSP/EXTI/exti.h
-..\..\output\exti.o: ..\..\Drivers\./BSP/SERVO/servo.h
-..\..\output\exti.o: ..\..\Drivers\./BSP/RC522/RC522.h
-..\..\output\exti.o: ..\..\Drivers\./BSP/LCD/lcd.h
-..\..\output\exti.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdlib.h
-..\..\output\exti.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\exti.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdio.h
-..\..\output\exti.o: ..\..\Middlewares\./TEXT/text.h
-..\..\output\exti.o: ..\..\Middlewares\./TEXT/fonts.h

@@ -236,6 +236,7 @@ void WIFI_MODIFY(void)
 			len = strlen(wifi_str);
 			wifi_str[len] = '\0';
 			at24cxx_write(75,(uint8_t*)wifi_str,len);
+			text_show_string_middle(0,60,"ÐÞ¸Ä³É¹¦",16,240,BLACK);
 			USART1_RX_STA = 0;
 		}
 	}

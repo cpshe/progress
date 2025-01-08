@@ -1,159 +1,48 @@
-/**
- ****************************************************************************************************
- * @file        exti.c
- * @author      正点原子团队(ALIENTEK)
- * @version     V1.0
- * @date        2020-04-19
- * @brief       外部中断 驱动代码
- * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
- ****************************************************************************************************
- * @attention
- *
- * 实验平台:正点原子 STM32F103开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- * 修改说明
- * V1.0 20200420
- * 第一次发布
- *
- ****************************************************************************************************
- */
-
-#include "./SYSTEM/sys/sys.h"
-#include "./SYSTEM/delay/delay.h"
-#include "./BSP/LED/led.h"
-#include "./BSP/BEEP/beep.h"
-#include "./BSP/KEY/key.h"
-#include "./BSP/EXTI/exti.h"
-#include "./BSP/SERVO/servo.h"
-#include "./BSP/RC522/RC522.h"
-#include "./BSP/LCD/lcd.h" 
 #include "./SYSTEM/usart/usart.h"
-#include "./TEXT/text.h"
+#include "./BSP/OV7670/ov7670.h"
+#include "./SYSTEM/delay/delay.h"
+#include "./BSP/EXTI/exti.h"
 
-extern unsigned char Card_ID1[8];
-extern unsigned char Card_ID2[8];
-extern unsigned char Card_ID3[8];
-extern unsigned char Card_ID4[8];
-extern unsigned char Card_ID5[8];
+uint8_t ov_sta;
 
-/**
- * @brief       KEY0 外部中断服务程序
- * @param       无
- * @retval      无
- */
-void KEY0_INT_IRQHandler(void)
+// 外部中断引脚初始化
+void EXTI8_Init(void)
 {
-    HAL_GPIO_EXTI_IRQHandler(KEY0_INT_GPIO_PIN);         /* 调用中断处理公用函数 清除KEY0所在中断线 的中断标志位 */
-    __HAL_GPIO_EXTI_CLEAR_IT(KEY0_INT_GPIO_PIN);         /* HAL库默认先清中断再处理回调，退出时再清一次中断，避免按键抖动误触发 */
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    EXTI_HandleTypeDef EXTI_Handle = {0};
+
+    // 启用 GPIOA 时钟
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    // 配置 PA8 引脚为外部中断模式
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;    // 设置为上升沿触发中断
+    GPIO_InitStruct.Pull = GPIO_NOPULL;             // 不启用上下拉电阻
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);         // 初始化 PA8 引脚
+
+    // 配置 NVIC 中断
+    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);  // 设置中断优先级
+    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);           // 使能外部中断通道 EXTI9_5_IRQn
+
+    // 配置 EXTI 中断线
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);       // 配置外部中断处理函数
 }
 
-/**
- * @brief       KEY1 外部中断服务程序
- * @param       无
- * @retval      无
- */
-void KEY1_INT_IRQHandler(void)
-{ 
-    HAL_GPIO_EXTI_IRQHandler(KEY1_INT_GPIO_PIN);         /* 调用中断处理公用函数 清除KEY1所在中断线 的中断标志位，中断下半部在HAL_GPIO_EXTI_Callback执行 */
-    __HAL_GPIO_EXTI_CLEAR_IT(KEY1_INT_GPIO_PIN);         /* HAL库默认先清中断再处理回调，退出时再清一次中断，避免按键抖动误触发 */
+// 外部中断处理函数 (EXTI9_5_IRQn 中断处理)
+void EXTI9_5_IRQHandler(void)
+{
+    // 调用 HAL 库提供的中断处理函数
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8); // 处理 PA8 引脚的中断
 }
 
-
-/**
- * @brief       WK_UP 外部中断服务程序
- * @param       无
- * @retval      无
- */
-/**
- * @brief       中断服务程序中需要做的事情
-                在HAL库中所有的外部中断服务函数都会调用此函数
- * @param       GPIO_Pin:中断引脚号
- * @retval      无
- */
+// 外部中断清除标志位
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    delay_ms(20);      /* 消抖 */
-//    switch(GPIO_Pin)
-//    {
-//        case KEY0_INT_GPIO_PIN:
-//            if (KEY0 == 0)
-//            {
-//							RC522_Handle();
-//							delay_ms(200);
-//							if(Card_OK == 0)
-//							{
-//								Card_OK = 2;
-//								printf("解锁失败");
-//								delay_ms(500);
-//								Servo_SetAngle(20);
-//								delay_ms(3000);
-//								processsum = 0;
-//							}
-//							if(Card_OK == 1)
-//							{
-//								Card_OK = 2;
-//								printf("解锁成功");
-//								BEEP(1);
-//								Servo_SetAngle(180);
-//								delay_ms(1000);
-//								BEEP(0);
-//								Servo_SetAngle(20);
-//								delay_ms(3000);
-//								processsum = 0;
-//							}
-//							break;
-//            }
-//    }
+    if(GPIO_Pin == GPIO_PIN_8)  // 如果是 PA8 引脚触发的中断
+    {
+        OV7670_WRST(0);    // 复位写指针
+        OV7670_WRST(1);    // 恢复写指针
+        OV7670_WREN(1);    // 允许写入 FIFO
+        ov_sta++;           // 帧中断计数加1
+    }
 }
-
-/**
- * @brief       外部中断初始化程序
- * @param       无
- * @retval      无
- */
-void extix_init(void)
-{
-    GPIO_InitTypeDef gpio_init_struct;
-
-    KEY0_GPIO_CLK_ENABLE();                                  /* KEY0时钟使能 */
-    KEY1_GPIO_CLK_ENABLE();                                  /* KEY1时钟使能 */
-    WKUP_GPIO_CLK_ENABLE();                                  /* WKUP时钟使能 */
-
-    gpio_init_struct.Pin = KEY0_INT_GPIO_PIN;
-    gpio_init_struct.Mode = GPIO_MODE_IT_FALLING;            /* 下升沿触发 */
-    gpio_init_struct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(KEY0_INT_GPIO_PORT, &gpio_init_struct);    /* KEY0配置为下降沿触发中断 */
-
-    gpio_init_struct.Pin = KEY1_INT_GPIO_PIN;
-    gpio_init_struct.Mode = GPIO_MODE_IT_FALLING;            /* 下升沿触发 */
-    gpio_init_struct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(KEY1_INT_GPIO_PORT, &gpio_init_struct);    /* KEY1配置为下降沿触发中断 */
-    
-    gpio_init_struct.Pin = WKUP_INT_GPIO_PIN;
-    gpio_init_struct.Mode = GPIO_MODE_IT_RISING;             /* 上升沿触发 */
-    gpio_init_struct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(WKUP_GPIO_PORT, &gpio_init_struct);        /* WKUP配置为下降沿触发中断 */
-
-    HAL_NVIC_SetPriority(KEY0_INT_IRQn, 0, 2);               /* 抢占0，子优先级2 */
-    HAL_NVIC_EnableIRQ(KEY0_INT_IRQn);                       /* 使能中断线4 */
-
-    HAL_NVIC_SetPriority(KEY1_INT_IRQn, 1, 2);               /* 抢占1，子优先级2 */
-    HAL_NVIC_EnableIRQ(KEY1_INT_IRQn);                       /* 使能中断线3 */
-
-}
-
-
-
-
-
-
-
-
-
-
-
-

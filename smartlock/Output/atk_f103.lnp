@@ -53,6 +53,8 @@
 "..\..\output\usart3.o"
 "..\..\output\time2.o"
 "..\..\output\rtc.o"
+"..\..\output\sccb.o"
+"..\..\output\ov7670.o"
 "..\..\output\exfuns.o"
 "..\..\output\fattester.o"
 "..\..\output\diskio.o"
