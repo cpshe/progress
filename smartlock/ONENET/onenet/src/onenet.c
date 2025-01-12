@@ -348,7 +348,7 @@ _Bool OneNet_DevLink(void)
 							"NAME: %s,	PROID: %s,	KEY:%s\r\n"
                         , DEVICE_NAME, PROID, authorization_buf);
 	
-	if(MQTT_PacketConnect(PROID, authorization_buf, DEVICE_NAME, 128, 1, MQTT_QOS_LEVEL0, NULL, NULL, 0, &mqttPacket) == 0)
+	if(MQTT_PacketConnect(PROID, authorization_buf, DEVICE_NAME, 512, 1, MQTT_QOS_LEVEL0, NULL, NULL, 0, &mqttPacket) == 0)
 	{
 		ESP8266_SendData(mqttPacket._data, mqttPacket._len);			//上传平台
 		

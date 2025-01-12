@@ -62,4 +62,5 @@
 ..\..\output\diskio.o: ..\..\Middlewares\./FATFS/source/diskio.h
 ..\..\output\diskio.o: ..\..\Middlewares\./FATFS/source/ff.h
 ..\..\output\diskio.o: ..\..\Middlewares\./FATFS/source/ffconf.h
+..\..\output\diskio.o: ..\..\Drivers\./BSP/SDIO/sdio_sdcard.h
 ..\..\output\diskio.o: ..\..\Drivers\./BSP/NORFLASH/norflash.h

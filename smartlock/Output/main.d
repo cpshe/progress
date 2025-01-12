@@ -96,9 +96,16 @@
 ..\..\output\main.o: ..\..\Drivers\./BSP/RTC/rtc.h
 ..\..\output\main.o: ..\..\Drivers\./BSP/OV7670/sccb.h
 ..\..\output\main.o: ..\..\Drivers\./BSP/OV7670/ov7670.h
-..\..\output\main.o: ..\..\ONENET\device\inc\esp8266.h
+..\..\output\main.o: ..\..\Middlewares\./PICTURE/piclib.h
+..\..\output\main.o: ..\..\Middlewares\./PICTURE/bmp.h
+..\..\output\main.o: ..\..\Middlewares\./PICTURE/gif.h
+..\..\output\main.o: ..\..\Middlewares\./PICTURE/tjpgd.h
+..\..\output\main.o: ..\..\Middlewares\./PICTURE/tjpgdcnf.h
 ..\..\output\main.o: D:\MDK5\ARM\ARMCC\Bin\..\include\string.h
+..\..\output\main.o: ..\..\Drivers\./BSP/SDIO/sdio_sdcard.h
+..\..\output\main.o: ..\..\ONENET\device\inc\esp8266.h
 ..\..\output\main.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdbool.h
 ..\..\output\main.o: ..\..\ONENET\onenet\inc\onenet.h
 ..\..\output\main.o: ..\..\ONENET\MQTT\MqttKit.h
 ..\..\output\main.o: ..\..\ONENET\MQTT\Common.h
+..\..\output\main.o: D:\MDK5\ARM\ARMCC\Bin\..\include\math.h

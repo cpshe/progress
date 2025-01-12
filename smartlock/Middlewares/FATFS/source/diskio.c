@@ -24,6 +24,7 @@
 
 #include "./MALLOC/malloc.h"
 #include "./FATFS/source/diskio.h"
+#include "./BSP/SDIO/sdio_sdcard.h"
 #include "./BSP/NORFLASH/norflash.h"
 
 
@@ -70,7 +71,7 @@ DSTATUS disk_initialize (
     switch (pdrv)
     {
         case SD_CARD:           /* SD卡 */
-//            res = sd_init();    /* SD卡初始化 */
+            res = sd_init();    /* SD卡初始化 */
             break;
 
         case EX_FLASH:          /* 外部flash */
@@ -113,13 +114,13 @@ DRESULT disk_read (
     switch (pdrv)
     {
         case SD_CARD:   /* SD卡 */
- //           res = sd_read_disk(buff, sector, count);
+            res = sd_read_disk(buff, sector, count);
 
             while (res)   /* 读出错 */
             {
- //               if (res != 2) sd_init();    /* 重新初始化SD卡 */
+                if (res != 2) sd_init();    /* 重新初始化SD卡 */
 
-//                res = sd_read_disk(buff, sector, count);
+                res = sd_read_disk(buff, sector, count);
                 //printf("sd rd error:%d\r\n", res);
             }
 
@@ -173,12 +174,12 @@ DRESULT disk_write (
     switch (pdrv)
     {
         case SD_CARD:       /* SD卡 */
- //           res = sd_write_disk((uint8_t *)buff, sector, count);
+						res = sd_write_disk((uint8_t *)buff, sector, count);
 
             while (res)     /* 写出错 */
             {
-//                sd_init();  /* 重新初始化SD卡 */
- //               res = sd_write_disk((uint8_t *)buff, sector, count);
+                sd_init();  /* 重新初始化SD卡 */
+                res = sd_write_disk((uint8_t *)buff, sector, count);
                 //printf("sd wr error:%d\r\n", res);
             }
 
@@ -239,12 +240,12 @@ DRESULT disk_ioctl (
                 break;
 
             case GET_BLOCK_SIZE:
-//                *(WORD *)buff = g_sdcard_handler.SdCard.BlockSize; /* g_sd_card_info.CardBlockSize;也可以 */
+                *(WORD *)buff = g_sdcard_handler.SdCard.BlockSize; /* g_sd_card_info.CardBlockSize;也可以 */
                 res = RES_OK;
                 break;
 
             case GET_SECTOR_COUNT:
-//                *(DWORD *)buff = ((long long)g_sdcard_handler.SdCard.BlockNbr * g_sdcard_handler.SdCard.BlockSize) / 512;   /* g_sd_card_info.CardCapacity / 512;也可以 */
+                *(DWORD *)buff = ((long long)g_sdcard_handler.SdCard.BlockNbr * g_sdcard_handler.SdCard.BlockSize) / 512;   /* g_sd_card_info.CardCapacity / 512;也可以 */
                 res = RES_OK;
                 break;
 

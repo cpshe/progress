@@ -75,4 +75,6 @@
 ..\..\output\password.o: ..\..\Drivers\./BSP/RC522/RC522.h
 ..\..\output\password.o: ..\..\Drivers\./BSP/TIM2/time2.h
 ..\..\output\password.o: ..\..\Drivers\./BSP/RTC/rtc.h
+..\..\output\password.o: ..\..\Drivers\./BSP/OV7670/ov7670.h
+..\..\output\password.o: ..\..\Drivers\./BSP/OV7670/sccb.h
 ..\..\output\password.o: D:\MDK5\ARM\ARMCC\Bin\..\include\stdio.h

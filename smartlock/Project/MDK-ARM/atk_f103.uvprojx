@@ -543,6 +543,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rtc_ex.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f1xx_hal_sd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_sd.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_ll_sdmmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_ll_sdmmc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -683,6 +693,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\OV7670\ov7670.c</FilePath>
             </File>
+            <File>
+              <FileName>sdio_sdcard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\BSP\SDIO\sdio_sdcard.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -742,6 +757,31 @@
               <FileName>malloc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\MALLOC\malloc.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/PICTURE</GroupName>
+          <Files>
+            <File>
+              <FileName>bmp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\PICTURE\bmp.c</FilePath>
+            </File>
+            <File>
+              <FileName>gif.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\PICTURE\gif.c</FilePath>
+            </File>
+            <File>
+              <FileName>piclib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\PICTURE\piclib.c</FilePath>
+            </File>
+            <File>
+              <FileName>tjpgd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\PICTURE\tjpgd.c</FilePath>
             </File>
           </Files>
         </Group>

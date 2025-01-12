@@ -11,6 +11,7 @@
 #include "./BSP/RC522/RC522.h"
 #include "./BSP/TIM2/time2.h"
 #include "./BSP/RTC/rtc.h"
+#include "./BSP/OV7670/ov7670.h"
 #include <stdio.h>
 
 uint8_t ** PW_kbd_tbl;
@@ -18,6 +19,8 @@ const uint8_t * kbd_passwordmenu[15]={"指纹"," : ","设置","1","2","3","4","5","6
 extern uint8_t Card_OK;
 extern int LOCKUP_START;
 extern uint32_t real_time;
+extern uint8_t sd_ok;
+extern char *photoname;
 uint8_t error_cnt = 0;
 
 _Bool generate_pwd_status;
@@ -127,12 +130,28 @@ void VERIFY_PW(uint16_t num)//密码验证
 		{
 			error_cnt++;
 			lcd_fill(0,120,240,140,WHITE);
-			text_show_string_middle(0,120,"密码错误",16,240,BLACK);
+			if(sd_ok)
+			{
+				camera_new_pathname(photoname);
+				OV7670_camera_refresh();
+				camera_bmp_photo(photoname);
+			}
+			BEEP(0);
+			text_show_string_middle(0,100,"密码错误",16,240,RED);
+			delay_ms(1800);
 		}
 		else if(error_cnt >2)
 		{
 			lcd_fill(0,120,240,140,WHITE);
-			text_show_string_middle(0,120,"设备上锁20s",16,240,BLACK);
+			if(sd_ok)
+			{
+				camera_new_pathname(photoname);
+				OV7670_camera_refresh();
+				camera_bmp_photo(photoname);
+			}
+			BEEP(0);
+			delay_ms(1800);
+			text_show_string_middle(0,100,"设备上锁20s",16,240,RED);
 			LOCKUP_START = 1;
 			while(LOCKUP_START)
 			{
@@ -143,7 +162,6 @@ void VERIFY_PW(uint16_t num)//密码验证
 	}
 	delay_ms(1000);
 	MAIN_MENU();//加载主页面
-	
 }
 
 void PW_load_keyboard(uint16_t x,uint16_t y,uint8_t **kbtbl)//加载虚拟键盘

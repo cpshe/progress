@@ -37,7 +37,10 @@
 	void OV7670_Contrast(uint8_t contrast);
 	void OV7670_Special_Effects(uint8_t eft);
 	void OV7670_Window_Set(uint16_t sx,uint16_t sy, uint16_t width, uint16_t height);
-
+	void OV7670_camera_refresh(void);
+	void camera_new_pathname(char *pname);
+	void camera_bmp_photo(char *pname);
+																
 	#endif
 
 														

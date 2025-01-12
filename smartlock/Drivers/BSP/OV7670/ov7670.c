@@ -4,6 +4,12 @@
 #include "./SYSTEM/delay/delay.h"
 #include "./SYSTEM/usart/usart.h"
 #include "./BSP/OV7670/sccb.h"
+#include "./BSP/LCD/lcd.h"
+#include "./PICTURE/piclib.h"
+#include "./BSP/BEEP/beep.h"
+#include "./TEXT/text.h"
+
+extern uint8_t ov_sta;
 
 //初始化OV7670
 //返回0:成功
@@ -283,5 +289,84 @@ void OV7670_Window_Set(uint16_t sx,uint16_t sy, uint16_t width, uint16_t height)
 	temp|=((endy&0X07)<<3)|(sy&0X07);
 	SCCB_WR_Reg(0X17,sy>>3);			//设置Href的start高8位
 	SCCB_WR_Reg(0X18,endy>>3);			//设置Href的end的高8位
+}
+
+void OV7670_camera_refresh(void)
+{
+    uint32_t i, j;
+    uint16_t color;
+ 
+    if (ov_sta)                  /* 有帧中断更新 */
+    {
+        lcd_scan_dir(U2D_L2R);          /* 从上到下, 从左到右 */
+        lcd_set_window((lcddev.width - 320) / 2, (lcddev.height - 240) / 2,
+                        320, 240);     /* 将显示区域设置到屏幕中央 */
+
+        lcd_write_ram_prepare();        /* 开始写入GRAM */
+
+        OV7670_RRST(0);                 /* 开始复位读指针 */
+				OV7670_RCK_L;
+				OV7670_RCK_H;
+				OV7670_RCK_L;
+        OV7670_RRST(1);                 /* 复位读指针结束 */
+        OV7670_RCK_H;
+			
+			
+        for (i = 0; i < 240; i++)
+        {
+            for (j = 0; j < 320; j++)
+            {
+                OV7670_RCK_L;
+                color = OV7670_DATA;    /* 读数据 */
+                OV7670_RCK_H;
+                color <<= 8;
+								OV7670_RCK_L;
+                color |= OV7670_DATA;   /* 读数据 */
+                OV7670_RCK_H;
+                LCD->LCD_RAM = color;
+            }
+        }
+
+        ov_sta = 0;              /* 清零帧中断标记 */
+        lcd_scan_dir(DFT_SCAN_DIR);     /* 恢复默认扫描方向 */
+    }
+}
+
+void camera_new_pathname(char *pname)
+{
+    uint8_t res;
+    uint16_t index = 0;
+    FIL *ftemp;
+    
+    ftemp = (FIL *)mymalloc(SRAMIN, sizeof(FIL));   /* 开辟FIL字节的内存区域 */
+
+    if (ftemp == NULL) return;                      /* 内存申请失败 */
+
+    while (index < 0XFFFF)
+    {
+        sprintf((char *)pname, "0:PHOTO/PIC%05d.bmp", index);
+        res = f_open(ftemp, (const TCHAR *)pname, FA_READ); /* 尝试打开这个文件 */
+
+        if (res == FR_NO_FILE)break;    /* 该文件名不存在, 正是我们需要的 */
+
+        index++;
+    }
+    myfree(SRAMIN, ftemp);
+}
+
+void camera_bmp_photo(char *pname)
+{
+	if (bmp_encode((uint8_t *)pname, (lcddev.width - 240) / 2, (lcddev.height - 320) / 2, 240, 320, 0))
+	{
+			text_show_string(40, 110, 240, 12, "写入文件错误!", 12, 0, RED);
+	}
+	else
+	{
+			text_show_string(40, 110, 240, 12, "拍照成功!", 12, 0, BLUE);
+			text_show_string(40, 130, 240, 12, "保存为:", 12, 0, BLUE);
+			text_show_string(40 + 42, 130, 240, 12, pname, 12, 0, BLUE);
+			BEEP(1);        /* 蜂鸣器短叫，提示拍照完成 */
+			delay_ms(100);
+	}
 }
 
